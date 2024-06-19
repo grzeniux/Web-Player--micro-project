@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HLS Player</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    #videoContainer { margin: 20px; }
+    #controls { margin: 20px; }
+    #videoInfo { margin: 20px; }
+    #urlList { margin: 20px; max-height: 200px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; }
+  </style>
+</head>
+<body>
+  <div id="videoContainer">
+    <video id="video" controls></video>
+  </div>
+  <div id="controls">
+    <label for="urlInput">Source URL:</label>
+    <input type="text" id="urlInput" placeholder="Enter your video URL">
+    <button id="loadButton">Load</button>
+    <br><br>
+    <select id="playlistSelect">
+      <option value="https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8">Sample Playlist 1</option>
+      <option value="https://test-streams.mux.dev/bbb/bbb.m3u8">Sample Playlist 2</option>
+      <option value="https://test-streams.mux.dev/test_001/stream.m3u8">Sample Playlist 3</option>
+      <option value="https://test-streams.mux.dev/pts/playlist.m3u8">High-Efficiency Streaming - Full</option>
+      <option value="https://test-streams.mux.dev/tears-of-steel/playlist.m3u8">Tears of Steel</option>
+      <option value="https://test-streams.mux.dev/single_rate/playlist.m3u8">Single Rate Video Only</option>
+    </select>
+    <br><br>
+    <div id="bitrateButtons"></div>
+  </div>
+  <div id="videoInfo"></div>
+  <div id="urlList">
+    <h3>Requested URLs:</h3>
+    <ul id="urlLogs"></ul>
+    <button id="clearLogs">Clear</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <script src="player.js"></script>
+</body>
+</html>
