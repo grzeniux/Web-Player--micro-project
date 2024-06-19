@@ -9,8 +9,3 @@ This project is a simple web-based HLS (HTTP Live Streaming) player built using 
 - **Stream Info**: Displays video information such as bitrate, height, width, video codec, and audio codec.
 - **URL Logging**: Logs all the URLs requested by the player.
 - **Custom URL Input**: Allows users to input their own HLS stream URL.
-
-## Prerequisites
-
-- Modern web browser (Chrome, Firefox, Safari, Edge).
-- Internet connection.
