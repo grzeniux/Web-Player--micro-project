@@ -8,7 +8,6 @@
   <style>
     body {
       font-family: 'Roboto', sans-serif;
-      background-color: #f4f4f4;
       margin: 0;
       padding: 0;
       display: flex;
@@ -16,16 +15,26 @@
       align-items: center;
       flex-direction: column;
       min-height: 100vh;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    body.day-mode {
+      background-color: #f4f4f4;
+      color: #333;
+    }
+    body.night-mode {
+      background-color: #333;
+      color: #f4f4f4;
     }
     h1 {
-      color: #333;
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
     }
     #videoContainer {
       margin: 20px;
       padding: 10px;
-      background-color: #fff;
+      background-color: rgba(255, 255, 255, 0.9);
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       border-radius: 8px;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
     video {
       width: 100%;
@@ -36,9 +45,10 @@
     #controls {
       margin: 20px;
       padding: 10px;
-      background-color: #fff;
+      background-color: rgba(255, 255, 255, 0.9);
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       border-radius: 8px;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
     label {
       font-weight: bold;
@@ -70,16 +80,18 @@
     #videoInfo {
       margin: 20px;
       padding: 10px;
-      background-color: #fff;
+      background-color: rgba(255, 255, 255, 0.9);
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       border-radius: 8px;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
     #urlList {
       margin: 20px;
       padding: 10px;
-      background-color: #fff;
+      background-color: rgba(255, 255, 255, 0.9);
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       border-radius: 8px;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
     #clearLogs {
       background-color: #dc3545;
@@ -88,10 +100,18 @@
     #clearLogs:hover {
       background-color: #c82333;
     }
+    #toggleMode {
+      background-color: #007bff;
+      color: #fff;
+    }
+    #toggleMode:hover {
+      background-color: #0056b3;
+    }
   </style>
 </head>
-<body>
+<body class="day-mode">
   <h1>HLS Player</h1>
+  <button id="toggleMode">Switch to Night Mode</button>
   <div id="videoContainer">
     <video id="video" controls></video>
   </div>
@@ -116,6 +136,112 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-  <script src="player.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const video = document.getElementById('video');
+      const playlistSelect = document.getElementById('playlistSelect');
+      const bitrateButtons = document.getElementById('bitrateButtons');
+      const videoInfo = document.getElementById('videoInfo');
+      const urlInput = document.getElementById('urlInput');
+      const loadButton = document.getElementById('loadButton');
+      const urlLogs = document.getElementById('urlLogs');
+      const clearLogs = document.getElementById('clearLogs');
+      const toggleMode = document.getElementById('toggleMode');
+      const body = document.body;
+
+      let hls = null;
+
+      toggleMode.addEventListener('click', () => {
+        if (body.classList.contains('day-mode')) {
+          body.classList.remove('day-mode');
+          body.classList.add('night-mode');
+          toggleMode.textContent = 'Switch to Day Mode';
+        } else {
+          body.classList.remove('night-mode');
+          body.classList.add('day-mode');
+          toggleMode.textContent = 'Switch to Night Mode';
+        }
+      });
+
+      if (Hls.isSupported()) {
+        hls = new Hls();
+
+        hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
+          createBitrateButtons(data.levels);
+          // Attempt to get codec information from the levels
+          if (data.levels.length > 0) {
+            displayVideoInfo(data.levels[0]);
+          } else {
+            videoInfo.innerHTML = 'No codec information available';
+          }
+        });
+
+        hls.on(Hls.Events.LEVEL_SWITCHED, function (event, data) {
+          const level = hls.levels[data.level];
+          displayVideoInfo(level);
+        });
+
+        hls.on(Hls.Events.FRAG_LOADING, function (event, data) {
+          logUrl(data.frag.url);
+        });
+
+        function loadSource(url) {
+          hls.loadSource(url);
+          hls.attachMedia(video);
+          video.play();
+        }
+
+        playlistSelect.addEventListener('change', (e) => {
+          loadSource(e.target.value);
+        });
+
+        loadButton.addEventListener('click', () => {
+          loadSource(urlInput.value);
+        });
+
+        function createBitrateButtons(levels) {
+          bitrateButtons.innerHTML = '';
+          levels.forEach((level, index) => {
+            const button = document.createElement('button');
+            button.innerText = `${Math.round(level.bitrate / 1000)} kbps`;
+            button.addEventListener('click', () => {
+              hls.currentLevel = index;
+            });
+            bitrateButtons.appendChild(button);
+          });
+        }
+
+        function displayVideoInfo(level) {
+          const videoCodec = level.videoCodec || 'undefined';
+          const audioCodec = level.audioCodec || 'undefined';
+          videoInfo.innerHTML = `
+            Bitrate: ${level.bitrate} <br>
+            Height: ${level.height} <br>
+            Width: ${level.width} <br>
+            Video codec: ${videoCodec} <br>
+            Audio codec: ${audioCodec}
+          `;
+        }
+
+        function logUrl(url) {
+          const li = document.createElement('li');
+          li.textContent = url;
+          urlLogs.appendChild(li);
+        }
+
+        clearLogs.addEventListener('click', () => {
+          urlLogs.innerHTML = '';
+        });
+
+        // Load the first playlist by default
+        loadSource(playlistSelect.value);
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = playlistSelect.value;
+        video.addEventListener('loadedmetadata', () => {
+          video.play();
+        });
+      }
+    });
+  </script>
 </body>
 </html>
